@@ -2,13 +2,13 @@ import express from "express";
 const router = express.Router();
 export default router;
 
+import { getTracksByPlaylist } from "#db/queries/tracks";
+import { createPlaylist_tracks } from "#db/queries/playlists_tracks";
 import {
   createPlaylist,
   getPlaylistById,
-  getPlaylistIncludingTracks,
   getPlaylists,
 } from "#db/queries/playlists";
-import { getTracksByPlaylist } from "#db/queries/tracks";
 
 router.get("/", async (req, res) => {
   const playlists = await getPlaylists();
@@ -43,4 +43,12 @@ router.get("/:id/tracks", async (req, res) => {
   res.send(tracks);
 });
 
-// router.post("/:id/tracks", async (req, res) => {});
+router.post("/:id/tracks", async (req, res) => {
+  if (!req.body) return res.status(400).send("Request body is required.");
+
+  const { trackId } = req.body;
+  if (!trackId) return res.status(400).send("Request body requires: trackId");
+
+  const playlistTrack = await createPlaylist_tracks(req.playlist.id, trackId);
+  res.status(201).send(playlistTrack);
+});
